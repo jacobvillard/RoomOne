@@ -8,7 +8,13 @@
 #include "Interfaces/OnlineFriendsInterface.h"
 #include "OnlineSubsystem.h"
 #include "Interfaces/OnlineIdentityInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Online/OnlineSessionNames.h"
+#include "eos_sdk.h"
+#include "eos_auth.h"
+#include "EOSShared.h"
+
+
 
 const FName SessionName = FName("Test_Session");
 
@@ -22,11 +28,33 @@ void UEOS_GameInstance::Init()
 	Super::Init();
 	
 	OnlineSubsystem = IOnlineSubsystem::Get();
+
+	TrySilentLogin();
+	
+}
+
+void UEOS_GameInstance::TrySilentLogin()
+{
+	if (!OnlineSubsystem)          { UE_LOG(LogTemp, Warning, TEXT("SL: no OSS"));          return;   }
+	IOnlineIdentityPtr Identity = OnlineSubsystem->GetIdentityInterface();
+	if (!Identity.IsValid())       { UE_LOG(LogTemp, Warning, TEXT("SL: no Identity"));   return; }
+
+
+	FOnlineAccountCredentials Creds;
+	Creds.Type  = FString("persistentauth");      // EOS expects this literal
+	Creds.Token = FString(); 
+	Creds.Id    = FString();                    // not used
+
+	Identity->OnLoginCompleteDelegates->AddUObject(this, &UEOS_GameInstance::OnLoginComplete);
+	bIsLoggedIn = Identity->Login(0, Creds); // returns true if login is in progress
+	UE_LOG(LogTemp, Log, TEXT("SL: Login() queued = %d"), bIsLoggedIn);
 }
 
 
 void UEOS_GameInstance::Login(bool dev)
 {
+	TrySilentLogin();
+
 	if (OnlineSubsystem)
 	{
 		if(dev)
@@ -93,6 +121,18 @@ void UEOS_GameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful,
 	}
 }
 
+void UEOS_GameInstance::ForceLogout()
+{
+	
+	if (IOnlineIdentityPtr Identity = OnlineSubsystem->GetIdentityInterface())
+	{
+		Identity->Logout(0);
+	}
+
+	bIsLoggedIn = false;
+}
+
+
 
 void UEOS_GameInstance::CreateSession()
 {
@@ -138,6 +178,14 @@ void UEOS_GameInstance::OnCreateSessionComplete(FName Name, bool bArg)
 	if (bArg)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Session '%s' created successfully."), *Name.ToString());
+		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface())
+		{
+			if (FNamedOnlineSession* Named = SessionPtr->GetNamedSession(Name))
+			{
+				CurrentLobbyId = Named->GetSessionIdStr();           // cache it for anyone who asks
+				UE_LOG(LogTemp, Log, TEXT("Created lobby ID: %s"), *CurrentLobbyId);
+			}
+		}
 	}
 	else
 	{
@@ -356,6 +404,14 @@ void UEOS_GameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionComplete
 }
 
 
+FString UEOS_GameInstance::GetLobbyId(const FBlueprintSessionResultCustom& Result) const
+{
+	if (Result.OnlineResult.IsValid())
+	{
+		return Result.OnlineResult.GetSessionIdStr();   // EOS uses the same ID for lobby + session
+	}
+	return FString();
+}
 
 
 

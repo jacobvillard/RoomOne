@@ -35,8 +35,13 @@ public:
 	void OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful,  const FUniqueNetId& UserId, const FString& Error);
 	
 	UFUNCTION(BlueprintCallable, Category = "EOS")
+	void ForceLogout();
+
+	UFUNCTION(BlueprintCallable, Category = "EOS")
 	void CreateSession();
 	void OnCreateSessionComplete(FName Name, bool bArg);
+	UPROPERTY(BlueprintReadOnly, Category="EOS")
+	FString CurrentLobbyId;
 
 	UFUNCTION(BlueprintCallable, Category = "EOS")
 	void DestroySession();
@@ -56,6 +61,13 @@ public:
 	void JoinSession(const FBlueprintSessionResultCustom& Result);
 	void OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteResult::Type Result);
 
+	UFUNCTION(BlueprintCallable, Category="EOS")
+	FString GetLobbyId(const FBlueprintSessionResultCustom& Result) const;
+
+	
+	//Save
+	void TrySilentLogin();
+
 
 
 protected:
@@ -63,6 +75,6 @@ protected:
 
 	TArray<FOnlineSessionSearchResult> CachedResults;
 	
-	
+	UPROPERTY(BlueprintReadOnly, Category="EOS")
 	bool bIsLoggedIn;
 };
