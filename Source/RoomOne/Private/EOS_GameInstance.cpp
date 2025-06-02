@@ -113,6 +113,8 @@ void UEOS_GameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful,
 		if (IOnlineIdentityPtr Identity = OnlineSubsystem->GetIdentityInterface())
 		{
 			Identity->ClearOnLoginCompleteDelegates(0, this);
+			playerName = Identity->GetPlayerNickname(0);
+			UE_LOG(LogTemp, Error, TEXT("Fetched DisplayName: %s"), *playerName);
 		}
 		else
 		{

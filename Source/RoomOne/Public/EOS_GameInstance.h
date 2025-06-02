@@ -77,4 +77,7 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category="EOS")
 	bool bIsLoggedIn;
+
+	UPROPERTY(BlueprintReadOnly, Category="EOS")
+	FString playerName;
 };
