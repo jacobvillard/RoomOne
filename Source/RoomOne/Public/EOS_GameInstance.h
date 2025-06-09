@@ -27,6 +27,8 @@ class ROOMONE_API UEOS_GameInstance : public UGameInstance
 	GENERATED_BODY()
 
 public:
+	using UGameInstance::JoinSession;
+	
 	UEOS_GameInstance();
 	virtual void Init() override;
 	
