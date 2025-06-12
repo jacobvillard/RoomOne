@@ -99,19 +99,24 @@ void ARoomOneCharacter::Move(const FInputActionValue& Value)
 
 	if (Controller != nullptr)
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		if (bUseWorldMovement)
+		{
+			// World-relative movement: +X and +Y
+			AddMovementInput(FVector(1, 0, 0), MovementVector.Y); // Forward = +X
+			AddMovementInput(FVector(0, 1, 0), MovementVector.X); // Right = +Y
+		}
+		else
+		{
+			// Camera-relative movement (original)
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+			AddMovementInput(ForwardDirection, MovementVector.Y);
+			AddMovementInput(RightDirection, MovementVector.X);
+		}
 	}
 }
 
@@ -126,4 +131,11 @@ void ARoomOneCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void ARoomOneCharacter::ToggleMovementMode()
+{
+	bUseWorldMovement = !bUseWorldMovement;
+
+	UE_LOG(LogTemplateCharacter, Warning, TEXT("World Movement is now: %s"), bUseWorldMovement ? TEXT("ENABLED") : TEXT("DISABLED"));
 }

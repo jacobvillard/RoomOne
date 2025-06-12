@@ -44,10 +44,17 @@ class ARoomOneCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
-public:
-	ARoomOneCharacter();
 	
 
+public:
+	ARoomOneCharacter();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bUseWorldMovement = false;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void ToggleMovementMode();
+	
 protected:
 
 	/** Called for movement input */
