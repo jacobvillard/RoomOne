@@ -29,6 +29,8 @@ class ROOMONE_API UEOS_GameInstance : public UGameInstance
 public:
 	UEOS_GameInstance();
 	virtual void Init() override;
+
+	using UGameInstance::JoinSession; //Added because linux is linuxing
 	
 	UFUNCTION(BlueprintCallable, Category = "EOS")
 	void Login(bool dev);

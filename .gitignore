@@ -1626,3 +1626,11 @@ Makefile
 .vscode/compileCommands_Default.json
 .vscode/c_cpp_properties.json
 .ignore
+Source/RoomOne/Public/EOS_GameInstance.h
+Source/RoomOne/Public/EOS_GameInstance.h
+Content/StarterContent/Blueprints/Blueprint_CeilingLight.uasset
+Content/StarterContent/Architecture/Floor_400x400.uasset
+Source/RoomOne/Public/EOS_GameInstance.h
+Content/StarterContent/Architecture/Floor_400x400.uasset
+Content/StarterContent/Blueprints/Blueprint_CeilingLight.uasset
+Source/RoomOne/Public/EOS_GameInstance.h
