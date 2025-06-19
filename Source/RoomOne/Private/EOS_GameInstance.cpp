@@ -13,6 +13,8 @@
 #include "eos_sdk.h"
 #include "eos_auth.h"
 #include "EOSShared.h"
+#include "HttpModule.h"
+#include "Interfaces/IHttpResponse.h"
 
 
 
@@ -416,6 +418,28 @@ FString UEOS_GameInstance::GetLobbyId(const FBlueprintSessionResultCustom& Resul
 	return FString();
 }
 
+void UEOS_GameInstance::RequestBadgeSheet()
+{
+	FString URL = TEXT("https://docs.google.com/spreadsheets/d/e/2PACX-1vS2I5w4SCylTq9ZkxU9yT0_pejgYFNHMLyRa_H1FpXKT9lBY3Q7YcecIQGvbLFsnnfs7C6YWWKoMyGy/pub?output=csv");
+
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(URL);
+	Request->SetVerb("GET");
+	Request->OnProcessRequestComplete().BindUObject(this, &UEOS_GameInstance::OnResponseReceived);
+	Request->ProcessRequest();
+}
+
+void UEOS_GameInstance::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (!bWasSuccessful || !Response.IsValid())
+	{
+		OnBadgeDataReceived.Broadcast("ERROR");
+		return;
+	}
+
+	FString Result = Response->GetContentAsString();
+	OnBadgeDataReceived.Broadcast(Result);
+}
 
 
 

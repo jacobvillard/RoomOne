@@ -6,6 +6,7 @@
 #include "OnlineSessionSettings.h"
 #include "Engine/GameInstance.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "Http.h"
 #include "EOS_GameInstance.generated.h"
 
 USTRUCT(BlueprintType)
@@ -17,6 +18,7 @@ struct FBlueprintSessionResultCustom
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBlueprintFindSessionsResultDelegate, const TArray<FBlueprintSessionResultCustom>&, Results);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSheetDataReceived, const FString&, Response);
 
 /**
  * 
@@ -70,6 +72,15 @@ public:
 	//Save
 	void TrySilentLogin();
 
+	UFUNCTION(BlueprintCallable, Category = "Badges")
+	void RequestBadgeSheet();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnSheetDataReceived OnBadgeDataReceived;
+	
+private:
+	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
 
 
 protected:
@@ -86,3 +97,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category="EOS")
 	FString userId;
 };
+
+
+
