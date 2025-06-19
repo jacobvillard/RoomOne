@@ -104,7 +104,6 @@ void UEOS_GameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful,
 	if (bWasSuccessful)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Login successful for user: %s"), *UserId.ToString());
-		userId = UserId.ToString();
 	}
 	else
 	{
@@ -117,6 +116,16 @@ void UEOS_GameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful,
 		{
 			Identity->ClearOnLoginCompleteDelegates(0, this);
 			playerName = Identity->GetPlayerNickname(0);
+			TSharedPtr<const FUniqueNetId> NetId = Identity->GetUniquePlayerId(0);
+			if (NetId.IsValid())
+			{
+				userId = NetId->ToString();
+				UE_LOG(LogTemp, Log, TEXT("Got user ID: %s"), *userId);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Failed to get Unique Player ID"));
+			}
 			UE_LOG(LogTemp, Error, TEXT("Fetched DisplayName: %s"), *playerName);
 		}
 		else
