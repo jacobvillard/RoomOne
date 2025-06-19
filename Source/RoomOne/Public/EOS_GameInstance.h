@@ -82,4 +82,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category="EOS")
 	FString playerName;
+
+	UPROPERTY(BlueprintReadOnly, Category="EOS")
+	FString userId;
 };

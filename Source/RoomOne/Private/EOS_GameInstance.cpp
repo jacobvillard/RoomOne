@@ -102,6 +102,7 @@ void UEOS_GameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful,
 	if (bWasSuccessful)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Login successful for user: %s"), *UserId.ToString());
+		userId = UserId.ToString();
 	}
 	else
 	{
