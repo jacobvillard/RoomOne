@@ -13,6 +13,8 @@
 #include "eos_sdk.h"
 #include "eos_auth.h"
 #include "EOSShared.h"
+#include "HttpModule.h"
+#include "Interfaces/IHttpResponse.h"
 
 
 
@@ -114,6 +116,16 @@ void UEOS_GameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful,
 		{
 			Identity->ClearOnLoginCompleteDelegates(0, this);
 			playerName = Identity->GetPlayerNickname(0);
+			TSharedPtr<const FUniqueNetId> NetId = Identity->GetUniquePlayerId(0);
+			if (NetId.IsValid())
+			{
+				userId = NetId->ToString();
+				UE_LOG(LogTemp, Log, TEXT("Got user ID: %s"), *userId);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Failed to get Unique Player ID"));
+			}
 			UE_LOG(LogTemp, Error, TEXT("Fetched DisplayName: %s"), *playerName);
 		}
 		else
@@ -415,6 +427,28 @@ FString UEOS_GameInstance::GetLobbyId(const FBlueprintSessionResultCustom& Resul
 	return FString();
 }
 
+void UEOS_GameInstance::RequestBadgeSheet()
+{
+	FString URL = TEXT("https://docs.google.com/spreadsheets/d/e/2PACX-1vS2I5w4SCylTq9ZkxU9yT0_pejgYFNHMLyRa_H1FpXKT9lBY3Q7YcecIQGvbLFsnnfs7C6YWWKoMyGy/pub?output=csv");
+
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(URL);
+	Request->SetVerb("GET");
+	Request->OnProcessRequestComplete().BindUObject(this, &UEOS_GameInstance::OnResponseReceived);
+	Request->ProcessRequest();
+}
+
+void UEOS_GameInstance::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (!bWasSuccessful || !Response.IsValid())
+	{
+		OnBadgeDataReceived.Broadcast("ERROR");
+		return;
+	}
+
+	FString Result = Response->GetContentAsString();
+	OnBadgeDataReceived.Broadcast(Result);
+}
 
 
 
