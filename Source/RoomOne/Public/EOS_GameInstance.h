@@ -9,6 +9,7 @@
 #include "Http.h"
 #include "EOS_GameInstance.generated.h"
 
+
 USTRUCT(BlueprintType)
 struct FBlueprintSessionResultCustom
 {
@@ -67,7 +68,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="EOS")
 	FString GetLobbyId(const FBlueprintSessionResultCustom& Result) const;
-
+	
 	
 	//Save
 	void TrySilentLogin();
@@ -75,8 +76,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Badges")
 	void RequestBadgeSheet();
 
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Badges")
 	FOnSheetDataReceived OnBadgeDataReceived;
+
+	UPROPERTY(BlueprintReadWrite, Category="Game")
+	APawn* ControlledPawn;
+	
 	
 private:
 	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
@@ -96,6 +101,8 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category="EOS")
 	FString userId;
+	
+
 };
 
 
