@@ -405,7 +405,7 @@ void UEOS_GameInstance::RequestBadgeSheet(){
 /// @param Request The original HTTP request object.
 /// @param Response The HTTP response from the server.
 /// @param bWasSuccessful Whether the request was completed successfully.
-void UEOS_GameInstance::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful){
+void UEOS_GameInstance::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) const {
 	if (!bWasSuccessful || !Response.IsValid()){
 		OnBadgeDataReceived.Broadcast("ERROR"); // Notify listeners of failure
 		return;
@@ -417,6 +417,72 @@ void UEOS_GameInstance::OnResponseReceived(FHttpRequestPtr Request, FHttpRespons
 
 #pragma endregion
 
+/// @brief Sends an HTTP GET request to fetch the public badge sheet CSV.
+/// The response will be handled asynchronously by OnResponseReceived().
+void UEOS_GameInstance::RequestGameCodes(){
+	const FString URL = TEXT("https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2RnuafJBwfCxdC5HjFVF7ztgeafZlc_uZjZ88IQk28I-xU_Qr-GB4SHxmCzQsDziEJd8O7Z0IQWKy/pub?output=csv");
+
+	// Create the HTTP request
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(URL);
+	Request->SetVerb("GET");
+	
+	// Bind completion callback and send the request
+	Request->OnProcessRequestComplete().BindUObject(this, &UEOS_GameInstance::OnGameCodeResponseReceived);
+	Request->ProcessRequest();
+}
+
+/// @brief Callback for when the badge sheet HTTP request completes.
+/// @param Request The original HTTP request object.
+/// @param Response The HTTP response from the server.
+/// @param bWasSuccessful Whether the request was completed successfully.
+void UEOS_GameInstance::OnGameCodeResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) const {
+	if (!bWasSuccessful || !Response.IsValid()){
+		OnGameDataReceived.Broadcast("ERROR"); // Notify listeners of failure
+		return;
+	}
+
+	FString Result = Response->GetContentAsString();
+	OnGameDataReceived.Broadcast(Result); // Send data to Blueprint or C++ listeners
+}
+
+
+
+
+void UEOS_GameInstance::AddGameCode(const FString& Code, const FString& LobbyId)
+{
+	const FString EncodedCode = FGenericPlatformHttp::UrlEncode(Code);
+	const FString EncodedLobby = FGenericPlatformHttp::UrlEncode(LobbyId);
+	const FString URL = FString::Printf(
+		TEXT("https://script.google.com/macros/s/AKfycbxUPAEuiOw9eN4W4kVklZt8X5dt2np-YD154VAbZRS6Qqj18-VTHVEQzo3ls_BkqeQu/exec?action=add&code=%s&lobbyID=%s"),
+		*EncodedCode, *EncodedLobby
+	);
+
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(URL);
+	Request->SetVerb("GET");
+	Request->OnProcessRequestComplete().BindLambda([](FHttpRequestPtr Req, FHttpResponsePtr Res, bool bSuccess) {
+		UE_LOG(LogTemp, Log, TEXT("AddGameCode: %s"), bSuccess ? *Res->GetContentAsString() : TEXT("Failed"));
+	});
+	Request->ProcessRequest();
+}
+
+void UEOS_GameInstance::RemoveGameCode(const FString& Code)
+{
+	const FString EncodedCode = FGenericPlatformHttp::UrlEncode(Code);
+	const FString URL = FString::Printf(
+		TEXT("https://script.google.com/macros/s/AKfycbxUPAEuiOw9eN4W4kVklZt8X5dt2np-YD154VAbZRS6Qqj18-VTHVEQzo3ls_BkqeQu/exec?action=remove&code=%s"),
+		*EncodedCode
+	);
+
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(URL);
+	Request->SetVerb("GET");
+	Request->OnProcessRequestComplete().BindLambda([](FHttpRequestPtr Req, FHttpResponsePtr Res, bool bSuccess) {
+		UE_LOG(LogTemp, Log, TEXT("RemoveGameCode: %s"), bSuccess ? *Res->GetContentAsString() : TEXT("Failed"));
+	});
+	Request->ProcessRequest();
+}
 
 
 
