@@ -50,6 +50,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "HttpBlueprint",
+			"Enabled": true
+		},
+		{
 			"Name": "NiagaraFluids",
 			"Enabled": true
 		}

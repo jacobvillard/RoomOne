@@ -6,7 +6,9 @@
 #include "OnlineSessionSettings.h"
 #include "Engine/GameInstance.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "Http.h"
 #include "EOS_GameInstance.generated.h"
+
 
 USTRUCT(BlueprintType)
 struct FBlueprintSessionResultCustom
@@ -17,6 +19,7 @@ struct FBlueprintSessionResultCustom
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBlueprintFindSessionsResultDelegate, const TArray<FBlueprintSessionResultCustom>&, Results);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSheetDataReceived, const FString&, Response);
 
 /**
  * 
@@ -29,6 +32,8 @@ class ROOMONE_API UEOS_GameInstance : public UGameInstance
 public:
 	UEOS_GameInstance();
 	virtual void Init() override;
+
+	using UGameInstance::JoinSession; //Added because linux is linuxing
 	
 	UFUNCTION(BlueprintCallable, Category = "EOS")
 	void Login(bool dev);
@@ -63,10 +68,23 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="EOS")
 	FString GetLobbyId(const FBlueprintSessionResultCustom& Result) const;
-
+	
 	
 	//Save
 	void TrySilentLogin();
+
+	UFUNCTION(BlueprintCallable, Category = "Badges")
+	void RequestBadgeSheet();
+
+	UPROPERTY(BlueprintAssignable, Category = "Badges")
+	FOnSheetDataReceived OnBadgeDataReceived;
+
+	UPROPERTY(BlueprintReadWrite, Category="Game")
+	APawn* ControlledPawn;
+	
+	
+private:
+	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 
 
@@ -80,4 +98,12 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category="EOS")
 	FString playerName;
+
+	UPROPERTY(BlueprintReadOnly, Category="EOS")
+	FString userId;
+	
+
 };
+
+
+
