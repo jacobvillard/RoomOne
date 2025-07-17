@@ -1,0 +1,7 @@
+{
+	"OutputFiles": [
+		"..\\..\\..\\x64\\UnrealGame\\Development\\ProceduralRopePlugin\\Module.ProceduralRopePlugin.cpp.obj",
+		"..\\..\\..\\x64\\UnrealGame\\Development\\ProceduralRopePlugin\\ProceduralRopePlugin.cpp.obj",
+		"..\\..\\..\\x64\\UnrealGame\\Development\\ProceduralRopePlugin\\ProceduralRopeComponent.cpp.obj"
+	]
+}
