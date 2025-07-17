@@ -5,7 +5,7 @@
 #include "Engine/StaticMesh.h"
 
 // Define a small constant to prevent division by zero or inverted ranges
-#define KINDA_SMALL_NUMBER 1.e-4f
+//#define KINDA_SMALL_NUMBER 1.e-4f
 
 UProceduralRopeComponent::UProceduralRopeComponent()
 {
