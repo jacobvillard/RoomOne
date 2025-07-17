@@ -78,15 +78,28 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Badges")
 	FOnSheetDataReceived OnBadgeDataReceived;
+	
 
 	UPROPERTY(BlueprintReadWrite, Category="Game")
 	APawn* ControlledPawn;
+
+	UFUNCTION(BlueprintCallable, Category = "GameCode")
+	void AddGameCode(const FString& Code, const FString& LobbyId);
+
+	UFUNCTION(BlueprintCallable, Category = "GameCode")
+	void RemoveGameCode(const FString& Code);
+
+	UFUNCTION(BlueprintCallable, Category = "GameCode")
+	void RequestGameCodes();
+
+	UPROPERTY(BlueprintAssignable, Category = "GameCode")
+	FOnSheetDataReceived OnGameDataReceived;
 	
 	
 private:
-	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-
-
+	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) const;
+	void OnGameCodeResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) const;
+	
 
 protected:
 	class IOnlineSubsystem* OnlineSubsystem;
