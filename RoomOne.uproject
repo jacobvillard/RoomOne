@@ -58,8 +58,8 @@
 			"Enabled": true
 		},
 		{
-			"Name": "PackageUI",
-			"Enabled": false
+			"Name": "HDRIBackdrop",
+			"Enabled": true
 		}
 	]
 }
