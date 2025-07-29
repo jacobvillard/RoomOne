@@ -548,6 +548,7 @@ void UEOS_GameInstance::OnSessionInviteAccepted(
 	TSharedPtr<const FUniqueNetId> InvitingPlayer,
 	const FOnlineSessionSearchResult& SessionToJoin)
 {
+	UE_LOG(LogTemp, Log, TEXT("Smth happened%s"), *InvitingPlayer->ToString());
 	if (bWasSuccessful && SessionToJoin.IsValid())
 	{
 		UE_LOG(LogTemp, Log, TEXT("Invite accepted from %s"), *InvitingPlayer->ToString());
