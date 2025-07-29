@@ -330,6 +330,16 @@ void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Result.OnlineResult is NOT valid"));
 	}
+	
+	if (OnlineSubsystem){
+    	if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
+    		if (SessionPtr->GetNamedSession(SessionName)){
+    			UE_LOG(LogTemp, Warning, TEXT("Destroying previous session '%s' before rejoining."), *SessionName.ToString());
+    			SessionPtr->DestroySession(SessionName);
+    		}
+    	}
+    }
+
 
 	// Patch search result flags (Steam workaround)
 	FOnlineSessionSearchResult* SearchResultPtr = const_cast<FOnlineSessionSearchResult*>(&Result.OnlineResult);
