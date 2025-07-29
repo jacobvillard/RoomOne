@@ -99,6 +99,12 @@ public:
 private:
 	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) const;
 	void OnGameCodeResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) const;
+	void OnSessionInviteAccepted(
+	const bool bWasSuccessful,
+	int32 LocalUserNum,
+	TSharedPtr<const FUniqueNetId> InvitingPlayer,
+	const FOnlineSessionSearchResult& SessionToJoin);
+	
 	
 
 protected:

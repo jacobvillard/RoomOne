@@ -32,6 +32,11 @@ void UEOS_GameInstance::Init(){
 	Super::Init();
 	OnlineSubsystem = IOnlineSubsystem::Get();
 	TrySilentLogin();
+	IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
+	if (Session.IsValid())
+	{
+		Session->OnSessionUserInviteAcceptedDelegates.AddUObject(this, &UEOS_GameInstance::OnSessionInviteAccepted);
+	}
 }
 
 /// @brief Attempts to log in using EOS persistent authentication silently.
@@ -537,5 +542,25 @@ void UEOS_GameInstance::RemoveGameCode(const FString& Code)
 	Request->ProcessRequest();
 }
 
+void UEOS_GameInstance::OnSessionInviteAccepted(
+	const bool bWasSuccessful,
+	int32 LocalUserNum,
+	TSharedPtr<const FUniqueNetId> InvitingPlayer,
+	const FOnlineSessionSearchResult& SessionToJoin)
+{
+	if (bWasSuccessful && SessionToJoin.IsValid())
+	{
+		UE_LOG(LogTemp, Log, TEXT("Invite accepted from %s"), *InvitingPlayer->ToString());
 
+		// Optional: Destroy old session before joining
+		IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
+		if (Session->GetNamedSession(SessionName))
+		{
+			Session->DestroySession(SessionName);
+		}
+
+		// Join the session
+		JoinSession(FBlueprintSessionResultCustom{SessionToJoin});
+	}
+}
 
