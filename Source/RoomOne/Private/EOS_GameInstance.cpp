@@ -361,14 +361,30 @@ void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result)
 /// @param Result Join session result enum.
 void UEOS_GameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteResult::Type Result){
 
-	FString ConnectString;
-	bool bGotConnect = OnlineSubsystem->GetSessionInterface()->GetResolvedConnectString(SessionName, ConnectString);
+	FString ConnectString2;
+	bool bGotConnect = OnlineSubsystem->GetSessionInterface()->GetResolvedConnectString(SessionName, ConnectString2);
 
 	if (bGotConnect){
-		UE_LOG(LogTemp, Log, TEXT("Got connect string: %s"), *ConnectString);
+		UE_LOG(LogTemp, Log, TEXT("Join session '%s' successful. Connecting to: %s"), *Name.ToString(), *ConnectString2);
+		if (APlayerController* PlayerController = GetFirstLocalPlayerController()){
+			PlayerController->ClientTravel(ConnectString2, TRAVEL_Absolute);
+		}
 	}
 	else{
-		UE_LOG(LogTemp, Error, TEXT("Failed to get resolved connect string for session '%s'"), *SessionName.ToString());
+		UE_LOG(LogTemp, Error, TEXT("❌ Failed to resolve connect string for session: '%s'"), *Name.ToString());
+		if (FNamedOnlineSession* Session = OnlineSubsystem->GetSessionInterface()->GetNamedSession(Name)){
+			UE_LOG(LogTemp, Warning, TEXT("Session found: %s"), *Session->SessionName.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("OwningUserId: %s"), *Session->OwningUserId->ToString());
+			UE_LOG(LogTemp, Warning, TEXT("SessionId: %s"), *Session->GetSessionIdStr());
+			UE_LOG(LogTemp, Warning, TEXT("NumOpenPublicConnections: %d"), Session->NumOpenPublicConnections);
+			UE_LOG(LogTemp, Warning, TEXT("SessionSettings: bIsLANMatch=%d, bUsesPresence=%d, bUseLobbiesIfAvailable=%d"),
+				Session->SessionSettings.bIsLANMatch,
+				Session->SessionSettings.bUsesPresence,
+				Session->SessionSettings.bUseLobbiesIfAvailable);
+		}
+		else{
+			UE_LOG(LogTemp, Error, TEXT("No session object found with name: %s"), *Name.ToString());
+		}
 	}
 	
 	if(OnlineSubsystem){
