@@ -330,12 +330,17 @@ void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Result.OnlineResult is NOT valid"));
 	}
+
+	// Patch search result flags (Steam workaround)
+	FOnlineSessionSearchResult* SearchResultPtr = const_cast<FOnlineSessionSearchResult*>(&Result.OnlineResult);
+	SearchResultPtr->Session.SessionSettings.bUsesPresence = true;
+	SearchResultPtr->Session.SessionSettings.bUseLobbiesIfAvailable = true;
 	
 	if (bIsLoggedIn ){
 		if(OnlineSubsystem){
 			if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
 				SessionPtr->OnJoinSessionCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnJoinSessionComplete);
-				SessionPtr->JoinSession(0, SessionName, Result.OnlineResult);	
+				SessionPtr->JoinSession(0, SessionName, *SearchResultPtr);
 				UE_LOG(LogTemp, Error, TEXT("Should join session: %s"), *Result.OnlineResult.GetSessionIdStr());
 			}
 			else{
