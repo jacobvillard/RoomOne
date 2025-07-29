@@ -264,6 +264,7 @@ void UEOS_GameInstance::FindSessions(){
 				SearchSettings->MaxSearchResults = 5000;
 				SearchSettings->QuerySettings.Set(SEARCH_KEYWORDS, FString("DarkCred"), EOnlineComparisonOp::Equals);
 				SearchSettings->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
+				SearchSettings->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 				SessionPtr->OnFindSessionsCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnFindSessionsComplete);
 				SessionPtr->FindSessions(0, SearchSettings.ToSharedRef());
 				
@@ -320,6 +321,15 @@ void UEOS_GameInstance::OnFindSessionsComplete(bool bArg){
 /// @brief Attempts to join a selected session.
 /// @param Result The session result to join.
 void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result){
+	if (Result.OnlineResult.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Result is valid. SessionId: %s"), *Result.OnlineResult.GetSessionIdStr());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Result.OnlineResult is NOT valid"));
+	}
+	
 	if (bIsLoggedIn ){
 		if(OnlineSubsystem){
 			if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
@@ -344,11 +354,17 @@ void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result)
 /// @param Name Name of the session.
 /// @param Result Join session result enum.
 void UEOS_GameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteResult::Type Result){
+
+	
 	if(OnlineSubsystem){
 		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
 			
 			FString ConnectString;
 			SessionPtr->GetResolvedConnectString(SessionName, ConnectString);
+
+			if (!SessionPtr->GetResolvedConnectString(SessionName, ConnectString)) {
+				UE_LOG(LogTemp, Error, TEXT("Failed to get resolved connect string for session '%s'"), *SessionName.ToString());
+			}
 			
 			if(!ConnectString.IsEmpty()){
 				UE_LOG(LogTemp, Log, TEXT("Join session '%s' successful. Connecting to: %s"), *Name.ToString(), *ConnectString);
