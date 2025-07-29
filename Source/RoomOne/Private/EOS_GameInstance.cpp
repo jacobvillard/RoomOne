@@ -361,6 +361,15 @@ void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result)
 /// @param Result Join session result enum.
 void UEOS_GameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteResult::Type Result){
 
+	FString ConnectString;
+	bool bGotConnect = OnlineSubsystem->GetSessionInterface()->GetResolvedConnectString(SessionName, ConnectString);
+
+	if (bGotConnect){
+		UE_LOG(LogTemp, Log, TEXT("Got connect string: %s"), *ConnectString);
+	}
+	else{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get resolved connect string for session '%s'"), *SessionName.ToString());
+	}
 	
 	if(OnlineSubsystem){
 		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
