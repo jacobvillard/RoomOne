@@ -264,7 +264,6 @@ void UEOS_GameInstance::FindSessions(){
 				SearchSettings->MaxSearchResults = 5000;
 				SearchSettings->QuerySettings.Set(SEARCH_KEYWORDS, FString("DarkCred"), EOnlineComparisonOp::Equals);
 				SearchSettings->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
-				SearchSettings->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 				SessionPtr->OnFindSessionsCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnFindSessionsComplete);
 				SessionPtr->FindSessions(0, SearchSettings.ToSharedRef());
 				
@@ -279,7 +278,7 @@ void UEOS_GameInstance::FindSessions(){
 	}
 	else{
 		UE_LOG(LogTemp, Warning, TEXT("Cannot create session: User is not logged in"));
-	}
+	}	
 }
 
 /// @brief Callback for when session search completes.
