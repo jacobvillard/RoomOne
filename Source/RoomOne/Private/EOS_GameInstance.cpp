@@ -157,11 +157,13 @@ void UEOS_GameInstance::CreateSession(){
 				SessionSettings.bIsDedicated = false;
 				SessionSettings.bShouldAdvertise = true;
 				SessionSettings.bIsLANMatch = false;
-				SessionSettings.NumPublicConnections = 5;
+				SessionSettings.NumPublicConnections = 15;
 				SessionSettings.bAllowJoinInProgress = true;
 				SessionSettings.bAllowJoinViaPresence = true;
 				SessionSettings.bUsesPresence = true;
 				SessionSettings.bUseLobbiesIfAvailable = true;
+				SessionSettings.bAllowInvites = true;
+
 
 				SessionSettings.Set(SEARCH_KEYWORDS, FString("DarkCred"), EOnlineDataAdvertisementType::ViaOnlineService);
 
