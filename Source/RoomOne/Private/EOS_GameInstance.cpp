@@ -17,7 +17,7 @@
 #include "Interfaces/IHttpResponse.h"
 
 
-const FName SessionName = FName("Test_Session");
+const FName SessionName = NAME_GameSession;
 
 #pragma region Login and Session Management
 
@@ -163,7 +163,7 @@ void UEOS_GameInstance::CreateSession(){
 				SessionSettings.bUsesPresence = true;
 				SessionSettings.bUseLobbiesIfAvailable = true;
 				SessionSettings.bAllowInvites = true;
-
+				
 
 				SessionSettings.Set(SEARCH_KEYWORDS, FString("DarkCred"), EOnlineDataAdvertisementType::ViaOnlineService);
 
@@ -335,7 +335,7 @@ void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result)
 		if(OnlineSubsystem){
 			if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
 				SessionPtr->OnJoinSessionCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnJoinSessionComplete);
-				SessionPtr->JoinSession(0, SessionName, Result.OnlineResult);
+				SessionPtr->JoinSession(0, SessionName, Result.OnlineResult);	
 				UE_LOG(LogTemp, Error, TEXT("Should join session: %s"), *Result.OnlineResult.GetSessionIdStr());
 			}
 			else{
@@ -361,11 +361,7 @@ void UEOS_GameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionComplete
 		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
 			
 			FString ConnectString;
-			SessionPtr->GetResolvedConnectString(SessionName, ConnectString);
-
-			if (!SessionPtr->GetResolvedConnectString(SessionName, ConnectString)) {
-				UE_LOG(LogTemp, Error, TEXT("Failed to get resolved connect string for session '%s'"), *SessionName.ToString());
-			}
+			
 			
 			if(!ConnectString.IsEmpty()){
 				UE_LOG(LogTemp, Log, TEXT("Join session '%s' successful. Connecting to: %s"), *Name.ToString(), *ConnectString);
