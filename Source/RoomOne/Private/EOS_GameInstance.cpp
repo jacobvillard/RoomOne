@@ -262,6 +262,40 @@ void UEOS_GameInstance::OnDestroySessionComplete(FName Name, bool bArg){
 	
 }
 
+/// @brief Destroys the session on the client side if it exists and we are not the host.
+void UEOS_GameInstance::DestroySessionOnClient() {
+	if (!OnlineSubsystem || !bIsLoggedIn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot destroy session: Not logged in or OSS missing."));
+		return;
+	}
+
+	IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
+	if (!Session.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot destroy session: Session interface invalid."));
+		return;
+	}
+
+	FNamedOnlineSession* ExistingSession = Session->GetNamedSession(SessionName);
+	if (!ExistingSession)
+	{
+		UE_LOG(LogTemp, Log, TEXT("No existing session to destroy."));
+		return;
+	}
+	
+	if (!ExistingSession->bHosting)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Destroying client session to clean up lobby state."));
+		Session->OnDestroySessionCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnDestroySessionComplete);
+		Session->DestroySession(SessionName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Skipping destroy — we are the host."));
+	}
+}
+
 /// @brief Searches for available sessions using EOS search parameters.
 void UEOS_GameInstance::FindSessions(){
 	if (bIsLoggedIn ){
@@ -440,6 +474,31 @@ FString UEOS_GameInstance::GetLobbyId(const FBlueprintSessionResultCustom& Resul
 }
 
 
+void UEOS_GameInstance::OnSessionInviteAccepted(
+	const bool bWasSuccessful,
+	int32 LocalUserNum,
+	TSharedPtr<const FUniqueNetId> InvitingPlayer,
+	const FOnlineSessionSearchResult& SessionToJoin)
+{
+	UE_LOG(LogTemp, Log, TEXT("Smth happened%s"), *InvitingPlayer->ToString());
+	if (bWasSuccessful && SessionToJoin.IsValid())
+	{
+		UE_LOG(LogTemp, Log, TEXT("Invite accepted from %s"), *InvitingPlayer->ToString());
+
+		// Optional: Destroy old session before joining
+		IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
+		if (Session->GetNamedSession(SessionName))
+		{
+			Session->DestroySession(SessionName);
+		}
+
+		// Join the session
+		JoinSession(FBlueprintSessionResultCustom{SessionToJoin});
+	}
+}
+
+
+
 #pragma endregion
 
 #pragma region Badge Sheets
@@ -475,6 +534,8 @@ void UEOS_GameInstance::OnResponseReceived(FHttpRequestPtr Request, FHttpRespons
 
 #pragma endregion
 
+#pragma region Game Codes
+
 /// @brief Sends an HTTP GET request to fetch the public badge sheet CSV.
 /// The response will be handled asynchronously by OnResponseReceived().
 void UEOS_GameInstance::RequestGameCodes(){
@@ -506,7 +567,9 @@ void UEOS_GameInstance::OnGameCodeResponseReceived(FHttpRequestPtr Request, FHtt
 
 
 
-
+/// @brief Adds a game code to the public Google Sheet.
+/// @param Code The code to add.
+/// @param LobbyId The related lobby ID.
 void UEOS_GameInstance::AddGameCode(const FString& Code, const FString& LobbyId)
 {
 	const FString EncodedCode = FGenericPlatformHttp::UrlEncode(Code);
@@ -525,6 +588,8 @@ void UEOS_GameInstance::AddGameCode(const FString& Code, const FString& LobbyId)
 	Request->ProcessRequest();
 }
 
+/// @brief Removes a game code from the public Google Sheet.
+/// @param Code The code to remove.
 void UEOS_GameInstance::RemoveGameCode(const FString& Code)
 {
 	const FString EncodedCode = FGenericPlatformHttp::UrlEncode(Code);
@@ -542,26 +607,6 @@ void UEOS_GameInstance::RemoveGameCode(const FString& Code)
 	Request->ProcessRequest();
 }
 
-void UEOS_GameInstance::OnSessionInviteAccepted(
-	const bool bWasSuccessful,
-	int32 LocalUserNum,
-	TSharedPtr<const FUniqueNetId> InvitingPlayer,
-	const FOnlineSessionSearchResult& SessionToJoin)
-{
-	UE_LOG(LogTemp, Log, TEXT("Smth happened%s"), *InvitingPlayer->ToString());
-	if (bWasSuccessful && SessionToJoin.IsValid())
-	{
-		UE_LOG(LogTemp, Log, TEXT("Invite accepted from %s"), *InvitingPlayer->ToString());
+#pragma endregion
 
-		// Optional: Destroy old session before joining
-		IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
-		if (Session->GetNamedSession(SessionName))
-		{
-			Session->DestroySession(SessionName);
-		}
-
-		// Join the session
-		JoinSession(FBlueprintSessionResultCustom{SessionToJoin});
-	}
-}
 

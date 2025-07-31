@@ -52,6 +52,8 @@ public:
 	void DestroySession();
 	void OnDestroySessionComplete(FName Name, bool bArg);
 
+	UFUNCTION(BlueprintCallable, Category="EOS")
+	void DestroySessionOnClient();
 	
 	UFUNCTION(BlueprintCallable, Category = "EOS")
 	void FindSessions();
