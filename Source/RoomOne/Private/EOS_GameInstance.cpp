@@ -174,6 +174,8 @@ void UEOS_GameInstance::CreateSession(){
 
 				SessionPtr->OnCreateSessionCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnCreateSessionComplete);
 				SessionPtr->CreateSession(0, SessionName, SessionSettings);
+
+				OnPrintConsoleMessage("Attempting to create session");
 			}
 			else{
 				UE_LOG(LogTemp, Warning, TEXT("Cannot create session: Online session interface is not available."));
@@ -197,11 +199,13 @@ void UEOS_GameInstance::OnCreateSessionComplete(FName Name, bool bArg){
 		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
 			if (FNamedOnlineSession* Named = SessionPtr->GetNamedSession(Name)){
 				CurrentLobbyId = Named->GetSessionIdStr();           // cache it for anyone who asks
+				OnPrintConsoleMessage(FString::Printf(TEXT("Created session with ID: %s"), *CurrentLobbyId));
 				UE_LOG(LogTemp, Log, TEXT("Created lobby ID: %s"), *CurrentLobbyId);
 			}
 		}
 	}
 	else{
+		OnPrintConsoleMessage("Failed to create session.");
 		UE_LOG(LogTemp, Warning, TEXT("Failed to create session '%s'."), *Name.ToString());
 	}
 
@@ -358,6 +362,13 @@ void UEOS_GameInstance::OnFindSessionsComplete(bool bArg){
 	}
 }
 
+void UEOS_GameInstance::OnPrintConsoleMessage_Implementation(const FString& text) {
+	UE_LOG(LogTemp, Log, TEXT("%s"), *text);
+}
+
+void UEOS_GameInstance::OnPostJoinSession_Implementation() {
+}
+
 /// @brief Attempts to join a selected session.
 /// @param Result The session result to join.
 void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result){
@@ -372,6 +383,7 @@ void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result)
 	
 	if (OnlineSubsystem){
     	if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
+    		OnPrintConsoleMessage("Attempting to join session: " + Result.OnlineResult.GetSessionIdStr()); 
     		if (SessionPtr->GetNamedSession(SessionName)){
     			UE_LOG(LogTemp, Warning, TEXT("Destroying previous session '%s' before rejoining."), *SessionName.ToString());
     			SessionPtr->DestroySession(SessionName);
@@ -390,17 +402,21 @@ void UEOS_GameInstance::JoinSession(const FBlueprintSessionResultCustom& Result)
 			if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface()){
 				SessionPtr->OnJoinSessionCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnJoinSessionComplete);
 				SessionPtr->JoinSession(0, SessionName, *SearchResultPtr);
+				OnPrintConsoleMessage("Session Found, Connecting...");
 				UE_LOG(LogTemp, Error, TEXT("Should join session: %s"), *Result.OnlineResult.GetSessionIdStr());
 			}
 			else{
+				OnPrintConsoleMessage("Error: Online session interface is not available.");
 				UE_LOG(LogTemp, Warning, TEXT("Cannot create session: Online session interface is not available."));
 			}	
 		}
 		else{
+			OnPrintConsoleMessage("Error: Online subsystem is not available.");
 			UE_LOG(LogTemp, Warning, TEXT("Cannot create session: Online subsystem is not available."));
 		}
 	}
 	else{
+		OnPrintConsoleMessage("Error: User is not logged in");
 		UE_LOG(LogTemp, Warning, TEXT("Cannot create session: User is not logged in"));
 	}
 }
@@ -415,6 +431,9 @@ void UEOS_GameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionComplete
 
 	if (bGotConnect){
 		UE_LOG(LogTemp, Log, TEXT("Join session '%s' successful. Connecting to: %s"), *Name.ToString(), *ConnectString2);
+
+		OnPostJoinSession();
+		
 		if (APlayerController* PlayerController = GetFirstLocalPlayerController()){
 			PlayerController->ClientTravel(ConnectString2, TRAVEL_Absolute);
 		}
@@ -608,5 +627,6 @@ void UEOS_GameInstance::RemoveGameCode(const FString& Code)
 }
 
 #pragma endregion
+
 
 

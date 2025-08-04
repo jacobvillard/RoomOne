@@ -62,6 +62,12 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "EOS|Sessions")
 	FBlueprintFindSessionsResultDelegate OnFindSessionsSuccess;
 
+	UFUNCTION(BlueprintNativeEvent, Category = "EOS")
+	void OnPrintConsoleMessage(const FString& text);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "EOS")
+	void OnPostJoinSession();
+
 	
 
 	UFUNCTION(BlueprintCallable, Category = "EOS")
